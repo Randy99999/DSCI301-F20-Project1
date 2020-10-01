@@ -1,0 +1,84 @@
+---
+title: "DSCI301 Project 1"
+author: "Randy Nuhfer"
+date: "9/26/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Project 1
+
+Library loading...
+
+```{r}
+library(tidyverse)
+```
+## Problem 1
+
+Run cleaning R file...
+
+```{r}
+source("CleanData.R")
+```
+
+
+
+There was actually very few changes I made in the cleaning/loading process, I did not run into any "messy" data or any NAs. I changed the key, mode, and target columns all to factors because they were a set of distinct integers.
+
+## Problem 2
+
+My data set is a set of 2017 Spotify songs and their various attributes such as dancability for how likely a song is a dance song. How the data was obtained and the descriptions of each column can be explored in more depth at this link: 'https://www.kaggle.com/geomack/spotifyclassification'. There are 2017 rows (strangely enough) and 17 different columns. 
+
+## Problem 3
+
+Exploring individual variables
+
+Let's see if we can find anything interesting first...
+```{r}
+Spotify %>%
+    filter(key == -1)
+```
+
+In all instances there was a key detected, thus the data is still "clean"
+
+Moving on...
+```{r}
+Spotify %>%
+    ggplot(aes(x = loudness)) +
+    geom_histogram(bins = 15, fill = "blue", color = "black") +
+    labs(title = "Distribution of loudness (in decibels)", x = "loundness (in decibels)")
+```
+
+
+As you may notice there are two things that jump out to you. One is that although there is a large portion from the -6Db to -3Db range this graph is heavily skewed left. Perhaps with most equipment (0 being the safest power level) the equipment likes to hover around -6 to -3 with some equipment playing it extremely safe down towards the -20 to -30 range. My guess is that equipment down in that range may be more sensitive. The second thing that sticks out is why exactly are these Decibels below 0? We usually measure using positive decibels because we start to "hear" at 0Db, this is absolute silence to us. However, with sound equipment it is better to have negative decibels because anything above 0Db may create problems in the equipment.
+
+Lets see which artists show up the most...
+```{r}
+artist_count <- count(Spotify, artist) %>%
+    arrange(desc(n)) %>%
+    filter(n > 5)
+artist_count
+```
+
+This is interesting, it seems as though in this particular data set, artist Drake shows up the most. Perhaps this is the favorite artist of the person who made this data set? We will look at that question in problem 4.
+
+## Problem 4
+
+Lets look at this particular question. Does the amount of times an artist show up in this data set have any correlation to being liked by the creator of this data set. Please note that the "target" column is an indicator of whether or not the creator of this data set liked that particular song, 1 being yes and 0 being no.
+
+
+```{r}
+Spotify %>%
+    group_by(artist) %>%
+    summarize(artist_total = n(), artist_liked = artist_total - sum(as.double(target)-1)) %>%
+    mutate(likability = artist_liked / artist_total) %>%
+    arrange(desc(artist_total))
+```
+As you can see the total amount of times an artist is liked and how many times that particular artist appears in the dataset can give you a likability percentage for that particular artist. Notice how Drake may have shown up in the dataset the most but is not the most liked. However this might be inaccurate as alot of the most liked artists only show up a few times in the dataset. This could be used to predict whether or not any new releases you (in this case the data set creator) might like by that particular artist. Also the predictions become more accurate the more songs are added to the dataset, thus as you are exposed to more songs, Spotify can make more accurate predictions. I am sure this is a small but significant aspect to Spotify's algorithms for when they determine your "Release Radar" playlist, which is why I found it particularly interesting.
+
+## Problem 5
+
+My final thoughts are more so questions now and curiosity. What else could I use to predict whether or not you (in this case the dataset creator) will like new song releases? This data set has many columns, maybe you really like loud music, thus more loud music will be suggested to you. When I first looked at this it just looked like a bunch of data in a dataset, but after doing problem 3 it was actually very interesting! Imagine the things we could predict if we gathered enough data on something!
