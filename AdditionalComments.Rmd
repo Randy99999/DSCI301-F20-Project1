@@ -1,0 +1,28 @@
+---
+title: "Additional"
+author: "John W. Hoggard"
+date: "10/6/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = F}
+source("CleanData.R")
+```
+
+
+```{r}
+Spotify %>%
+    group_by(artist) %>%
+    summarize(artist_total = n(), artist_liked = artist_total - sum(as.double(target)-1)) %>%
+    mutate(likability = artist_liked / artist_total) %>%
+    arrange(desc(artist_total)) %>%
+    ggplot() +
+        geom_count(aes(artist_total, likability)) +
+    labs(title = "Targeted Artists Aren't Oversampled", 
+         x = "Appearances in Dataset", y = "Percent Targeted")
+```
+
